@@ -1,0 +1,432 @@
+// import 'package:flutter/material.dart';
+// import 'package:http/http.dart' as http;
+// import 'package:flutter/services.dart';
+// import 'distrito.dart';
+
+// import 'dart:convert';
+
+// class Empleado {
+//   final int id;
+//   final String dni;
+//   final String nombre;
+//   final String apellido;
+//   final String direccion;
+//   final int idDistrito;
+//   final int idRol;
+//   final String telefono;
+//   final String celular;
+//   final String correo;
+//   final int edad;
+//   final String sexo;
+//   final String habilitar;
+
+//   Empleado({
+//     required this.id,
+//     required this.dni,
+//     required this.nombre,
+//     required this.apellido,
+//     required this.direccion,
+//     required this.idDistrito,
+//     required this.idRol,
+//     required this.telefono,
+//     required this.celular,
+//     required this.correo,
+//     required this.edad,
+//     required this.sexo,
+//     required this.habilitar,
+//   });
+
+//   factory Empleado.fromJson(Map<String, dynamic> json) {
+//     return Empleado(
+//       id: json[
+//           'id_empleado'], // Debería ser 'id_empleado' si así está en el JSON
+//       dni: json['dni'],
+//       nombre: json['nombre'],
+//       apellido: json['apellido'],
+//       direccion: json['direccion'],
+//       idDistrito: json[
+//           'id_distrito'], // Debería ser 'id_distrito' si así está en el JSON
+//       idRol: json['id_Rol'], // Debería ser 'id_Rol' si así está en el JSON
+//       telefono: json['telefono'],
+//       celular: json['celular'],
+//       correo: json['correo'],
+//       edad: json['edad'],
+//       sexo: json['sexo'],
+//       habilitar: json['habilitar'],
+//     );
+//   }
+
+//   Future<void> eliminar() async {
+//     final response = await http.delete(
+//       Uri.parse('http://localhost:8080/ferreteria/empleados/$id'),
+//       headers: <String, String>{
+//         'Content-Type': 'application/json; charset=UTF-8',
+//       },
+//     );
+
+//     if (response.statusCode != 204) {
+//       throw Exception('Error al eliminar el empleado');
+//     }
+//   }
+// }
+
+// class EmpleadoScreen extends StatefulWidget {
+//   @override
+//   _EmpleadoScreenState createState() => _EmpleadoScreenState();
+// }
+
+// class _EmpleadoScreenState extends State<EmpleadoScreen> {
+//   final _formKey = GlobalKey<FormState>();
+//   final _dniController = TextEditingController();
+//   final _nombreController = TextEditingController();
+//   final _apellidoController = TextEditingController();
+//   final _direccionController = TextEditingController();
+//   final _distritoController = TextEditingController();
+//   final _rolController = TextEditingController();
+//   final _telefonoController = TextEditingController();
+//   final _celularController = TextEditingController();
+//   final _correoController = TextEditingController();
+//   final _edadController = TextEditingController();
+
+//   String _sexo = 'Masculino'; // Valor por defecto
+//   String _habilitado = 'HABILITADO'; // Valor por defecto
+
+//   late List<Empleado> _empleados;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _empleados = [];
+//     _getEmpleados();
+//   }
+
+//   Future<void> _getEmpleados() async {
+//     final response =
+//         await http.get(Uri.parse('http://localhost:8080/ferreteria/empleados'));
+//     if (response.statusCode == 200) {
+//       final parsedResponse = json.decode(response.body);
+//       setState(() {
+//         _empleados = (parsedResponse as List)
+//             .map((empleado) => Empleado.fromJson(empleado))
+//             .toList();
+//       });
+//     } else {
+//       throw Exception('Error al cargar los empleados');
+//     }
+//   }
+
+//   Future<void> _addEmpleado() async {
+//     try {
+//       if (_formKey.currentState!.validate()) {
+//         final response = await http.post(
+//           Uri.parse('http://localhost:8080/ferreteria/empleados'),
+//           headers: <String, String>{
+//             'Content-Type': 'application/json; charset=UTF-8',
+//           },
+//           body: jsonEncode(<String, dynamic>{
+//             'dni': _dniController.text,
+//             'nombre': _nombreController.text,
+//             'apellido': _apellidoController.text,
+//             'direccion': _direccionController.text,
+//             'id_distrito': int.parse(_distritoController.text),
+//             'id_rol': int.parse(_rolController.text),
+//             'telefono': _telefonoController.text,
+//             'celular': _celularController.text,
+//             'correo': _correoController.text,
+//             'edad': int.parse(_edadController.text),
+//             'sexo': _sexo,
+//             'habilitar': _habilitado,
+//           }),
+//         );
+
+//         if (response.statusCode == 201) {
+//           await _getEmpleados();
+//           setState(() {
+//             _dniController.clear();
+//             _nombreController.clear();
+//             _apellidoController.clear();
+//             _direccionController.clear();
+//             _distritoController.clear();
+//             _rolController.clear();
+//             _telefonoController.clear();
+//             _celularController.clear();
+//             _correoController.clear();
+//             _edadController.clear();
+//             _sexo = 'Masculino';
+//             _habilitado = 'HABILITADO';
+//           });
+//         } else {
+//           throw Exception(
+//               'Error al añadir el empleado: ${response.statusCode}');
+//         }
+//       }
+//     } catch (e) {
+//       print('Error al añadir el empleado: $e');
+//     }
+//   }
+
+//   Future<void> _eliminarEmpleado(Empleado empleado) async {
+//     try {
+//       await empleado.eliminar();
+//       setState(() {
+//         _empleados.remove(empleado);
+//       });
+//     } catch (e) {
+//       print('Error al eliminar el empleado: $e');
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Formulario Empleados'),
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: SingleChildScrollView(
+//           child: Form(
+//             key: _formKey,
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 TextFormField(
+//                   controller: _dniController,
+//                   decoration: InputDecoration(labelText: 'DNI'),
+//                   maxLength: 8, // Limitar a 8 caracteres
+//                   keyboardType: TextInputType.number,
+//                   inputFormatters: [
+//                     FilteringTextInputFormatter.digitsOnly,
+//                   ], // Aceptar solo números
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese el DNI';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _nombreController,
+//                   decoration: InputDecoration(labelText: 'Nombre'),
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese el nombre';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _apellidoController,
+//                   decoration: InputDecoration(labelText: 'Apellido'),
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese el apellido';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _direccionController,
+//                   decoration: InputDecoration(labelText: 'Dirección'),
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese la dirección';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _distritoController,
+//                   decoration: InputDecoration(labelText: 'ID Distrito'),
+//                   keyboardType: TextInputType.number,
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese el ID del distrito';
+//                     }
+//                     if (int.tryParse(value) == null) {
+//                       return 'Por favor ingrese un número válido';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _rolController,
+//                   decoration: InputDecoration(labelText: 'ID Rol'),
+//                   keyboardType: TextInputType.number,
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese el ID del rol';
+//                     }
+//                     if (int.tryParse(value) == null) {
+//                       return 'Por favor ingrese un número válido';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _telefonoController,
+//                   decoration: InputDecoration(labelText: 'Teléfono'),
+//                   maxLength: 7, // Limitar a 7 caracteres
+//                   keyboardType: TextInputType.number,
+//                   inputFormatters: [
+//                     FilteringTextInputFormatter.digitsOnly,
+//                   ], // Aceptar solo números
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese el celular';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _celularController,
+//                   decoration: InputDecoration(labelText: 'Celular'),
+//                   maxLength: 9, // Limitar a 7 caracteres
+//                   keyboardType: TextInputType.number,
+//                   inputFormatters: [
+//                     FilteringTextInputFormatter.digitsOnly,
+//                   ], // Aceptar solo números
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese el celular';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _correoController,
+//                   decoration: InputDecoration(labelText: 'Correo'),
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese el correo';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: _edadController,
+//                   decoration: InputDecoration(labelText: 'Edad'),
+//                   keyboardType: TextInputType.number,
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Por favor ingrese la edad';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 Row(
+//                   children: [
+//                     Text('Sexo:'),
+//                     Radio<String>(
+//                       value: 'Masculino',
+//                       groupValue: _sexo,
+//                       onChanged: (value) {
+//                         setState(() {
+//                           _sexo = value!;
+//                         });
+//                       },
+//                     ),
+//                     Text('Masculino'),
+//                     Radio<String>(
+//                       value: 'Femenino',
+//                       groupValue: _sexo,
+//                       onChanged: (value) {
+//                         setState(() {
+//                           _sexo = value!;
+//                         });
+//                       },
+//                     ),
+//                     Text('Femenino'),
+//                   ],
+//                 ),
+//                 Row(
+//                   children: [
+//                     Text('Habilitado:'),
+//                     Radio<String>(
+//                       value: 'HABILITADO',
+//                       groupValue: _habilitado,
+//                       onChanged: (value) {
+//                         setState(() {
+//                           _habilitado = value!;
+//                         });
+//                       },
+//                     ),
+//                     Text('Sí'),
+//                     Radio<String>(
+//                       value: 'DESHABILITADO',
+//                       groupValue: _habilitado,
+//                       onChanged: (value) {
+//                         setState(() {
+//                           _habilitado = value!;
+//                         });
+//                       },
+//                     ),
+//                     Text('No'),
+//                   ],
+//                 ),
+//                 SizedBox(height: 20),
+//                 ElevatedButton(
+//                   onPressed: _addEmpleado,
+//                   child: Text('Añadir Empleado'),
+//                 ),
+//                 SizedBox(height: 20),
+//                 _empleados.isEmpty
+//                     ? Center(child: CircularProgressIndicator())
+//                     : ListView.builder(
+//                         shrinkWrap: true,
+//                         physics: NeverScrollableScrollPhysics(),
+//                         itemCount: _empleados.length,
+//                         itemBuilder: (context, index) {
+//                           final empleado = _empleados[index];
+//                           return Card(
+//                             margin: EdgeInsets.symmetric(vertical: 10),
+//                             child: ListTile(
+//                               title: Text(
+//                                 '${empleado.nombre} ${empleado.apellido}',
+//                                 style: TextStyle(
+//                                   fontWeight: FontWeight.bold,
+//                                 ),
+//                               ),
+//                               trailing: IconButton(
+//                                 icon: Icon(Icons.delete),
+//                                 onPressed: () {
+//                                   showDialog(
+//                                     context: context,
+//                                     builder: (BuildContext context) {
+//                                       return AlertDialog(
+//                                         title: Text('Confirmación'),
+//                                         content: Text(
+//                                           '¿Estás seguro de eliminar a ${empleado.nombre} ${empleado.apellido}?',
+//                                         ),
+//                                         actions: <Widget>[
+//                                           TextButton(
+//                                             child: Text('Cancelar'),
+//                                             onPressed: () {
+//                                               Navigator.of(context).pop();
+//                                             },
+//                                           ),
+//                                           TextButton(
+//                                             child: Text('Eliminar'),
+//                                             onPressed: () {
+//                                               _eliminarEmpleado(empleado);
+//                                               Navigator.of(context).pop();
+//                                             },
+//                                           ),
+//                                         ],
+//                                       );
+//                                     },
+//                                   );
+//                                 },
+//                               ),
+//                             ),
+//                           );
+//                         },
+//                       ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
